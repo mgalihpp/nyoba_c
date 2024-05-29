@@ -20,6 +20,8 @@ void deleteStudent(Student *students, int *count, int id);
 void updateStudent(Student *students, int count, int id);
 void searchStudent(Student *students, int count, char *name);
 void searchStudentById(Student *students, int count, int id);
+void saveStudentsToFile(char *filename, Student *students, int count);
+void saveAveragesToFile(char *filename, Student *students, int count);
 
 Student *readStudents(FILE *file, int *count)
 {
@@ -105,11 +107,27 @@ void addStudent(Student **students, int *count, int *capacity)
     printf("Enter student name: ");
     scanf("%49s", (*students)[*count].name);
     printf("Enter student ID: ");
-    scanf("%d", &(*students)[*count].id);
+    while (scanf("%d", &(*students)[*count].id) != 1)
+    {
+        printf("Invalid input. Enter a valid student ID: ");
+        while (getchar() != '\n')
+            ; // clear input buffer
+    }
     printf("Enter 5 grades: ");
     for (int i = 0; i < 5; i++)
     {
-        scanf("%d", &(*students)[*count].grades[i]);
+        while (1)
+        {
+            if (scanf("%d", &(*students)[*count].grades[i]) == 1)
+            {
+                break; // Valid input, exit the inner while loop
+            }
+            printf("Invalid input. Enter a valid grade: ");
+            while (getchar() != '\n')
+            {
+                // Clear input buffer
+            }
+        }
     }
 
     (*count)++;
@@ -163,7 +181,18 @@ void updateStudent(Student *students, int count, int id)
             printf("Enter new grades for %s (5 grades): ", students[i].name);
             for (int j = 0; j < 5; j++)
             {
-                scanf("%d", &students[i].grades[j]);
+                while (1)
+                {
+                    if (scanf("%d", &students[i].grades[j]) == 1)
+                    {
+                        break; // Valid input, exit the inner while loop
+                    }
+                    printf("Invalid input. Enter a valid grade: ");
+                    while (getchar() != '\n')
+                    {
+                        // Clear input buffer
+                    }
+                }
             }
             calculateAverages(students, count);
             sortStudentsByAverage(students, count);
@@ -220,9 +249,42 @@ void searchStudentById(Student *students, int count, int id)
     }
 }
 
+void saveStudentsToFile(char *filename, Student *students, int count)
+{
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        perror("Error opening file for writting");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        fprintf(file, "%s %d %d %d %d %d %d\n", students[i].name, students[i].id,
+                students[i].grades[0], students[i].grades[1], students[i].grades[2],
+                students[i].grades[3], students[i].grades[4]);
+    }
+    fclose(file);
+}
+
+void saveAveragesToFile(char *filename, Student *students, int count)
+{
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        perror("Error opening file for writting");
+        exit(EXIT_FAILURE);
+    }
+
+    writeStudents(file, students, count);
+    fclose(file);
+}
+
 int main()
 {
-    FILE *inputFile = fopen("students.txt", "r");
+    char filename[] = "students.txt";
+    char outputFilename[] = "average.txt";
+    FILE *inputFile = fopen(filename, "r");
     if (inputFile == NULL)
     {
         perror("Error opening input file");
@@ -246,11 +308,19 @@ int main()
         printf("2. Print students\n");
         printf("3. Delete student\n");
         printf("4. Update student\n");
-        printf("5. Search student by name\n");
+        printf("5. Search student by Name\n");
         printf("6. Search student by ID\n");
-        printf("7. Save and exit\n");
+        printf("7. Save students to file\n");
+        printf("8. Average of all students and exit\n");
+        printf("9. Exit\n");
         printf("Enter your choice: ");
-        scanf("%d", &choice);
+        while (scanf("%d", &choice) != 1)
+        {
+            printf("Invalid input. Enter a valid choice: ");
+            while (getchar() != '\n')
+                ; // Clear the input buffer
+        }
+        printf("\n");
 
         switch (choice)
         {
@@ -266,7 +336,12 @@ int main()
         {
             int id;
             printf("Enter student ID to delete: ");
-            scanf("%d", &id);
+            while (scanf("%d", &id) != 1)
+            {
+                printf("Invalid input. Enter a valid ID: ");
+                while (getchar() != '\n')
+                    ; // Clear the input buffer
+            }
             deleteStudent(students, &count, id);
             break;
         }
@@ -274,7 +349,12 @@ int main()
         {
             int id;
             printf("Enter student ID to update: ");
-            scanf("%d", &id);
+            while (scanf("%d", &id) != 1)
+            {
+                printf("Invalid input. Enter a valid ID: ");
+                while (getchar() != '\n')
+                    ; // Clear the input buffer
+            }
             updateStudent(students, count, id);
             break;
         }
@@ -290,27 +370,35 @@ int main()
         {
             int id;
             printf("Enter student ID to search: ");
-            scanf("%d", &id);
+            while (scanf("%d", &id) != 1)
+            {
+                printf("Invalid input. Enter a valid ID: ");
+                while (getchar() != '\n')
+                    ; // Clear the input buffer
+            }
             searchStudentById(students, count, id);
             break;
         }
         case 7:
         {
-            FILE *outputFile = fopen("average.txt", "w");
-            if (outputFile == NULL)
-            {
-                perror("Error opening output file");
-                free(students);
-                return EXIT_FAILURE;
-            }
-            writeStudents(outputFile, students, count);
-            fclose(outputFile);
-            printf("Processing completed. Check 'averages.txt' for results.\n");
+            saveStudentsToFile(filename, students, count);
+            printf("Changes saved. Check '%s' for results.\n", filename);
+            break;
         }
+        case 8:
+        {
+            saveAveragesToFile(outputFilename, students, count);
+            printf("Changes saved. Check '%s' for results.\n", outputFilename);
+            exit(EXIT_SUCCESS);
+            break;
+        }
+        case 9:
+            exit(EXIT_SUCCESS);
+            break;
         default:
             printf("Invalid choice. Please try again.\n");
         }
-    } while (choice != 7);
+    } while (choice != 9);
 
     free(students);
 
