@@ -1,0 +1,6 @@
+Name: ex, ID: 1, Average: 90359552.00
+Name: Charlie, ID: 103, Average: 96.40
+Name: Alice, ID: 101, Average: 93.20
+Name: Bob, ID: 102, Average: 80.00
+Name: ex, ID: 105, Average: 1.00
+Name: Agus, ID: 103, Average: 0.00
